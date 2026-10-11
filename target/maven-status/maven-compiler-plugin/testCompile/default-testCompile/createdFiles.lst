@@ -1,0 +1,8 @@
+com\apihealth\alert\service\AlertServiceTest.class
+com\apihealth\monitoring\client\SsrfValidatorTest.class
+com\apihealth\optimization\service\OptimizationServiceTest.class
+com\apihealth\metrics\service\MetricsServiceTest.class
+com\apihealth\monitoring\ApiPlatformIntegrationTest.class
+com\apihealth\auth\controller\AuthControllerIntegrationTest.class
+com\apihealth\monitoring\ApiPlatformIntegrationTest$1.class
+com\apihealth\cache\memory\CustomInMemoryCacheTest.class

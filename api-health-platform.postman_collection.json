@@ -1,0 +1,534 @@
+{
+  "info": {
+    "name": "API Health, Observability & Latency Optimization Platform",
+    "description": "Postman Collection for API Health Platform backend API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "apiId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "alertId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"SRE Admin\",\n  \"email\": \"admin@apihealth.io\",\n  \"password\": \"P@ssword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('jwtToken', jsonData.data.token);",
+                  "    console.log('JWT Token saved to collection variable');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@apihealth.io\",\n  \"password\": \"P@ssword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Monitored APIs",
+      "item": [
+        {
+          "name": "Register New API",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('apiId', jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"GitHub Zen API\",\n  \"url\": \"https://api.github.com/zen\",\n  \"httpMethod\": \"GET\",\n  \"checkIntervalSeconds\": 60,\n  \"timeoutMillis\": 5000,\n  \"latencyThresholdMillis\": 400,\n  \"expectedStatusCodes\": \"200\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/apis",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "apis"]
+            }
+          }
+        },
+        {
+          "name": "List Monitored APIs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/apis?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "apis"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get API Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/apis/{{apiId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "apis", "{{apiId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update API",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Zen API\",\n  \"latencyThresholdMillis\": 350,\n  \"checkIntervalSeconds\": 120\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/apis/{{apiId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "apis", "{{apiId}}"]
+            }
+          }
+        },
+        {
+          "name": "Trigger Manual Health Check",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/apis/{{apiId}}/check",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "apis", "{{apiId}}", "check"]
+            }
+          }
+        },
+        {
+          "name": "Get Check History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/apis/{{apiId}}/checks?page=0&size=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "apis", "{{apiId}}", "checks"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "50" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Recommendations for API",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/apis/{{apiId}}/recommendations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "apis", "{{apiId}}", "recommendations"]
+            }
+          }
+        },
+        {
+          "name": "Delete API",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/apis/{{apiId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "apis", "{{apiId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Metrics & Observability",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/metrics/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "metrics", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "API Metrics (P50/P95/P99)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/metrics/apis/{{apiId}}?windowHours=24",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "metrics", "apis", "{{apiId}}"],
+              "query": [
+                { "key": "windowHours", "value": "24" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Hourly Latency Trends",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/metrics/apis/{{apiId}}/trends?windowHours=24",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "metrics", "apis", "{{apiId}}", "trends"],
+              "query": [
+                { "key": "windowHours", "value": "24" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "API Status Summaries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/metrics/apis/summaries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "metrics", "apis", "summaries"]
+            }
+          }
+        },
+        {
+          "name": "Top Slowest APIs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/metrics/apis/slowest?limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "metrics", "apis", "slowest"],
+              "query": [
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "Get User Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/alerts?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "alerts"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Acknowledge Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/alerts/{{alertId}}/acknowledge",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "alerts", "{{alertId}}", "acknowledge"]
+            }
+          }
+        },
+        {
+          "name": "Resolve Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/alerts/{{alertId}}/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "alerts", "{{alertId}}", "resolve"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cache & Performance",
+      "item": [
+        {
+          "name": "Get Cache Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cache/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cache", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Run Latency Benchmark",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cache/benchmark?iterations=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cache", "benchmark"],
+              "query": [
+                { "key": "iterations", "value": "100" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Clear Cache",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cache/clear",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cache", "clear"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Actuator & Telemetry",
+      "item": [
+        {
+          "name": "Health Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/actuator/prometheus",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "prometheus"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

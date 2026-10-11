@@ -1,0 +1,172 @@
+================================================================================
+   API HEALTH & OBSERVABILITY PLATFORM - INTELLIJ IDEA SETUP GUIDE
+================================================================================
+
+This document provides a complete, step-by-step guide to configure, build,
+and run this Spring Boot 3.3.5 project in IntelliJ IDEA on Windows.
+
+--------------------------------------------------------------------------------
+1. PREREQUISITES
+--------------------------------------------------------------------------------
+Before starting, ensure you have:
+  - IntelliJ IDEA (Community Edition or Ultimate Edition)
+  - Java Development Kit (JDK) 21 installed.
+    * Note: If you do not have Java 21 yet, you can download it directly inside 
+      IntelliJ IDEA (explained in Step 3 below).
+  - Backing Services:
+    * PostgreSQL (port 5432)
+    * Redis (port 6379)
+    (Can be started via Docker or installed locally on Windows).
+
+--------------------------------------------------------------------------------
+2. OPENING THE PROJECT IN INTELLIJ IDEA
+--------------------------------------------------------------------------------
+1. Open IntelliJ IDEA.
+2. In the welcome screen or top menu, click:
+     File -> Open...
+3. Browse to this project folder:
+     c:\final year project\Api health App backend
+   (Alternatively, select the "pom.xml" file inside this folder).
+4. When prompted:
+   - Select "Open as Project".
+   - If prompted with "Trust and Open Project?", click "Trust Project".
+
+--------------------------------------------------------------------------------
+3. CONFIGURE PROJECT SDK & JAVA 21
+--------------------------------------------------------------------------------
+Spring Boot 3.3.5 strictly requires Java 21.
+
+1. Open Project Structure:
+   - Press shortcut: Ctrl + Alt + Shift + S
+   - OR click: File -> Project Structure...
+2. Under "Project Settings", select "Project":
+   - SDK: Choose "21" (e.g., Eclipse Temurin 21 or Oracle OpenJDK 21).
+   - If "21" is NOT listed:
+       a. Click the SDK dropdown -> "Add SDK" -> "Download JDK...".
+       b. Select Version: "21", Vendor: "Eclipse Temurin (Adoptium)".
+       c. Click "Download" and wait for it to install.
+   - Language level: Select "21 - Strings in switch, record patterns, etc.".
+3. Click "Apply" and then "OK".
+
+4. Verify Java Compiler Settings:
+   - Press Ctrl + Alt + S (or File -> Settings...).
+   - Navigate to: Build, Execution, Deployment -> Compiler -> Java Compiler.
+   - Ensure "Project bytecode version" is set to "21".
+   - Click "OK".
+
+--------------------------------------------------------------------------------
+4. SYNC MAVEN DEPENDENCIES
+--------------------------------------------------------------------------------
+1. Open the Maven tool window:
+   - Click the "Maven" tab on the right sidebar.
+   - (If not visible, click: View -> Tool Windows -> Maven).
+2. Click the "Reload All Maven Projects" button (icon with two circular blue arrows 🔄).
+3. Wait for IntelliJ to download dependencies from the Maven central repository.
+   - You can see progress in the bottom status bar.
+
+--------------------------------------------------------------------------------
+5. START DATABASE & REDIS
+--------------------------------------------------------------------------------
+The application expects PostgreSQL and Redis with these default credentials:
+  - PostgreSQL Database: apihealth
+  - PostgreSQL Username: apihealth
+  - PostgreSQL Password: apihealth
+  - PostgreSQL Port:     5433 (mapped to avoid conflict with local Windows PostgreSQL)
+  - Redis Port:          6379
+
+Choose ONE of the following methods to start them:
+
+METHOD A: Using Docker (Recommended)
+------------------------------------
+If you have Docker Desktop running:
+1. Open the IntelliJ built-in Terminal (Alt + F12 or View -> Tool Windows -> Terminal).
+2. Run:
+     docker compose up -d postgres redis
+3. Flyway database migrations will automatically run and create tables on boot.
+
+*(Note: If Docker Desktop does not start due to WSL, run the installer:
+  C:\Users\gaura\Downloads\wsl_installer.msi to repair WSL).*
+
+METHOD B: Using Local Windows Services (No Docker)
+--------------------------------------------------
+If running without Docker:
+1. PostgreSQL:
+   - Ensure PostgreSQL service is running on port 5432.
+   - Create a database named "apihealth":
+       CREATE USER apihealth WITH PASSWORD 'apihealth';
+       CREATE DATABASE apihealth OWNER apihealth;
+2. Redis:
+   - Install and start Redis for Windows (or Redis on WSL) on default port 6379.
+   *(Note: The backend has fallback logic for Redis; if Redis is down, it uses
+    in-memory caching, but having Redis is recommended).*
+
+--------------------------------------------------------------------------------
+6. RUN THE APPLICATION
+--------------------------------------------------------------------------------
+1. In the Project file tree on the left, navigate to:
+     src
+       └── main
+           └── java
+               └── com
+                   └── apihealth
+                       └── ApiHealthApplication.java
+2. Double-click "ApiHealthApplication.java" to open it.
+3. Click the green ▶ (Play) icon next to:
+     public class ApiHealthApplication
+   OR right-click anywhere in the file and select:
+     Run 'ApiHealthApplication'
+4. The Run tab will open at the bottom showing the Spring Boot startup logs.
+5. Wait until you see:
+     "Started ApiHealthApplication in X.XXX seconds (process running for ...)"
+
+--------------------------------------------------------------------------------
+7. VERIFY THE RUNNING SYSTEM
+--------------------------------------------------------------------------------
+Open your web browser and test these URLs:
+
+1. Swagger UI (Interactive API documentation & testing):
+   http://localhost:8080/swagger-ui.html
+
+2. Spring Boot Actuator Health:
+   http://localhost:8080/actuator/health
+
+3. OpenAPI JSON Specification:
+   http://localhost:8080/api-docs
+
+4. Prometheus Metrics:
+   http://localhost:8080/actuator/prometheus
+
+--------------------------------------------------------------------------------
+8. TROUBLESHOOTING COMMON ERRORS
+--------------------------------------------------------------------------------
+
+Issue 1: "java: release version 21 not supported"
+Solution:
+  - File -> Settings -> Build, Execution, Deployment -> Compiler -> Java Compiler
+  - Set Target bytecode version to "21".
+  - File -> Project Structure -> Project -> Project SDK: set to "21".
+
+Issue 2: "Connection refused: localhost:5432" or "FlywayException"
+Solution:
+  - Your PostgreSQL service is not running or credentials do not match.
+  - Run "docker compose up -d postgres" or start your local PostgreSQL server.
+  - Check credentials in src/main/resources/application.yml (username: apihealth, password: apihealth).
+
+Issue 3: "Port 8080 is already in use"
+Solution:
+  - Another application is using port 8080.
+  - In IntelliJ Terminal (Alt + F12), run:
+      netstat -ano | findstr :8080
+    Find the PID and terminate it:
+      taskkill /PID <PID> /F
+  - Or change the port in application.yml:
+      server:
+        port: 8081
+
+Issue 4: Red squiggly lines on imports in Java files
+Solution:
+  - Maven cache needs refreshing:
+    Right-click project root -> Maven -> Reload Project
+    OR: File -> Invalidate Caches... -> check all -> "Invalidate and Restart".
+
+================================================================================
